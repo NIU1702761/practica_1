@@ -103,15 +103,18 @@ read -p "Introdueix una comanda: " comanda
           # exit 0
            #;;
 	est)
-       	   nord=$(awk -F',' '$9>0' cities.csv | wc -l)
-           sud=$(awk -F',' '$9<0' cities.csv | wc -l)
-           est=$(awk -F',' '$10>0' cities.csv | wc -l)
-           oest=$(awk -F',' '$10<0' cities.csv | wc -l)
-           noubic=$(awk -F',' '$9 == "" && $10 == ""' cities.csv | wc -l)
-	   nowdid=$(awk -F',' '$11 == ""' cities.csv | wc -l)
-	   echo "Nord $nord Sud $sud Est $est Oest $oest No ubic $noubic No WDId $nowdid"
-	   exit 0
-	   ;;
+          awk -F ',' 'BEGIN{num_north=0; } \
+                {if (NR>0) {
+                        num_north+=($9 > 0.0);
+                        num_south+=($9<0.0);
+                        num_east+=($10<0.0)
+                        num_west+=($10<0.0);
+                        num_no_ubic+=($9 == 0.0) && ($10 == 0.0);
+                        num_no_wikidata_id+=($11 == "")
+                }}
+                END {print "Nord " num_north "Sud " num_south "Est "num_east "Oest "num_west "No ubic "num_no_location "No WDId "num_no_wikidata_id }' cities.csv
+        ;;
+
         *)
            echo "Comanda no reconeguda: $comanda"
            ;;
