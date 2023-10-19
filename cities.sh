@@ -91,19 +91,29 @@ read -p "Introdueix una comanda: " comanda
            fi
            exit 0
            ;;
-	#gwd)
-	 #  if [ "$country_code" != "XX"] && [ "state_code" != "XX"]; then
-	#	read -p "Introdueix el nom d'una població del país: $country_code i de l'estat: $state_code: " input_coutry_name
-	#	wikidata=$(awk -F, -v country_name="$input_country_name" '$8 == country_name {print $11}' cities.csv)
-	#	awk -F, -v country="$country_code" -v state="$state_code" -v name="$country_name"'{if ($7 == country && $4 == state && $2 == name) wikidata="$11" } cities.csv
-		echo "Dades de ${country_name} extretes i guardades a ${wikidata}.json."  
-	 #   else
-          #      echo "Primer has de seleccionar un país i un estat (utilitza les ordres sc i se)."
-         #  fi
-          # exit 0
-           #;;
-	est)
-          awk -F ',' 'BEGIN{num_north=0; } \
+
+	gwd)
+           if [ "$country_code" != "XX" ] && [ "$state_code" != "XX" ]; then
+                read -p "Introdueix el nom de la població: " input_city_name
+                city_wikidata_id=$(awk -F, -v country="$country_code" -v state="$state_code" -v city="$input_city_name" \
+                '$7 == country && $4 == state && ($2 == city || $2 ~ "\""city"\"") {print $11}' cities.csv | uniq)
+
+                if [ -z "$city_wikidata_id" ]; then
+                        echo "La població no existeix o no pertany a l'estat i país seleccionats."
+                else
+                        echo "Obtenint dades de la WikiData per la població $input_city_name (wikidataId: $city_wikidata_id)..."
+                        wget -O "${city_wikidata_id}.json" "https://www.wikidata.org/wiki/Special:EntityData/${city_wikidata_id}.json"
+                        echo "Dades emmagatzemades en ${city_wikidata_id}.json."
+                fi
+
+           else
+                echo "Primer has de seleccionar un país i un estat (utilitza l'ordre sc i se)."
+           fi
+
+           ;;
+
+        est)
+          awk -F ',' 'BEGIN{num_north=0; num_south=0; num_east=0; num_west=0; num_no_ubic=0; num_no_wikidata_id=0} \
                 {if (NR>0) {
                         num_north+=($9 > 0.0);
                         num_south+=($9<0.0);
@@ -112,8 +122,8 @@ read -p "Introdueix una comanda: " comanda
                         num_no_ubic+=($9 == 0.0) && ($10 == 0.0);
                         num_no_wikidata_id+=($11 == "")
                 }}
-                END {print "Nord " num_north "Sud " num_south "Est "num_east "Oest "num_west "No ubic "num_no_location "No WDId "num_no_wikidata_id }' cities.csv
-        ;;
+                END {print "Nord " num_north " Sud " num_south " Est "num_east " Oest "num_west " No ubic "num_no_location " No WDId "num_no_wikidata_id }' cities.csv
+         ;;
 
         *)
            echo "Comanda no reconeguda: $comanda"
