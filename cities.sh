@@ -1,9 +1,16 @@
 #!/bin/bash
+
 selected_country="XX"
 CADENA='(("\w+(+\w+)+")|\w+)'
 country_code="XX"
+country_name="XX"
 state_code="XX"
+state_name="XX"
+
 while true; do
+
+echo "Tria una opció de les següents: q, lp, sc, se, le, lcp, ecp, lce, ece, gwd, est"
+
 read -p "Introdueix una comanda: " comanda
   case $comanda in
         q)
@@ -16,31 +23,49 @@ read -p "Introdueix una comanda: " comanda
            ;;
         sc)
            read -p "Introdueix el nom del país: " input_country_name
-           country_code=$(awk -F, -v country_name="$input_country_name" '$8 == country_name {print $7}' cities.csv |uniq)
-           if [ -z "$country_code" ]; then
-                echo "El país no existeix o no es troba."
-                country_code="XX"
+           if [ -n "$input_country_name" ]; then
+             new_country_code=$(awk -F, -v country_name="$input_country_name" '$8 == country_name {print $7}' cities.csv | uniq)
+             if [ -z "$new_country_code" ]; then
+               echo "El país no existeix o no es troba."
+               country_code="XX"
+               country_name="XX"
+             else
+               country_name="$input_country_name"
+               country_code="$new_country_code"
+               echo "País seleccionat: $country_name"
+               echo "Codi: $country_code"
+             fi
            else
-                echo "País seleccionat: $input_country_name"
-                echo "Codi: $country_code"
+             echo "País seleccionat: $country_name"
+             echo "Codi: $country_code"
            fi
            ;;
+
         se)
             if [ "$country_code" != "XX" ]; then
                  read -p "Introdueix el nom de l'estat: " input_state_name
-                state_code=$(awk -F, -v state_name="$input_state_name" -v country="$country_code" \
+                 if [ -n "$input_state_name" ]; then
+                         new_state_code=$(awk -F, -v state_name="$input_state_name" -v country="$country_code" \
                 '$7 == country && ($5 == state_name || $5 ~ "\""state_name"\"") {print $4}' cities.csv | uniq)
-                if [ -z "$state_code" ]; then
-                        echo "L'estat no existeix o no pertany al país seleccionat."
-                        state_code="XX"
+                         if [ -z "$new_state_code" ]; then
+                                echo "L'estat no existeix o no pertany al país seleccionat."
+                                state_code="XX"
+                                state_name="XX"
+                         else
+                                state_name="$input_state_name"
+                                state_code="$new_state_code"
+                                echo "Estat seleccionat: $input_state_name"
+                                echo "Codi: $state_code"
+                         fi
                 else
-                        echo "Estat seleccionat: $input_state_name"
+                        echo "Estat seleccionat: $state_name"
                         echo "Codi: $state_code"
                 fi
            else
                 echo "Primer has de seleccionar un país (utilitza l'ordre sc)."
            fi
            ;;
+
 	le)
            if [ "$country_code" != "XX" ]; then
                 echo "Els estats del país seleccionat ($country_code) són:"
